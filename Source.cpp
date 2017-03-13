@@ -1,5 +1,7 @@
 ﻿#pragma comment(linker,"\"/manifestdependency:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 
+#pragma comment(lib,"imm32.lib")
+
 #include <windows.h>
 
 TCHAR szClassName[] = TEXT("Window");
@@ -10,46 +12,25 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	switch (msg)
 	{
 	case WM_CREATE:
-		hStatic = CreateWindow(TEXT("STATIC"), 0, WS_VISIBLE | WS_CHILD, 0, 0, 0, 0, hWnd, 0, ((LPCREATESTRUCT)lParam)->hInstance, 0);
+		hStatic = CreateWindow(TEXT("STATIC"), 0, WS_VISIBLE | WS_CHILD | SS_CENTER | SS_CENTERIMAGE, 0, 0, 0, 0, hWnd, 0, ((LPCREATESTRUCT)lParam)->hInstance, 0);
+		ImmAssociateContext(hWnd, 0);
 		break;
 	case WM_SIZE:
 		MoveWindow(hStatic, 0, 0, LOWORD(lParam), HIWORD(lParam), TRUE);
 		break;
 	case WM_KEYDOWN:
 		{
-			UINT nScanCode = MapVirtualKey((UINT)wParam, 0);
-			if (nScanCode)
+			TCHAR szText[1024];
+			if (GetKeyNameText((LONG)lParam, szText, _countof(szText)))
 			{
-				switch (wParam)
-				{
-				case VK_LEFT:
-				case VK_UP:
-				case VK_RIGHT:
-				case VK_DOWN:
-				case VK_PRIOR:
-				case VK_NEXT:
-				case VK_END:
-				case VK_HOME:
-				case VK_INSERT:
-				case VK_DELETE:
-				case VK_DIVIDE:
-				case VK_NUMLOCK:
-					nScanCode |= 0x100;
-					break;
-				}
-				TCHAR szBuf[128];
-				if (GetKeyNameText(nScanCode << 16, szBuf, sizeof(szBuf)))
-				{
-					SetWindowText(hStatic, szBuf);
-				}
+				wsprintf(szText + lstrlen(szText), TEXT("(wParam=0x%X,lParam=0x%X)"), wParam, lParam);
 			}
 			else
 			{
-				TCHAR szText[1024];
 				wsprintf(szText, TEXT("Unknown wParam = 0x%X, lParam = 0x%X"), wParam, lParam);
-				SetWindowText(hStatic, szText);
 			}
-		}
+			SetWindowText(hStatic, szText);
+	}
 		break;
 	case WM_DESTROY:
 		PostQuitMessage(0);
